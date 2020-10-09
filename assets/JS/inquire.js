@@ -1,10 +1,13 @@
 // Prompt the user questions using Inquire
 // requires
-const inquirer = require("inquirer");
+const inquire = require("inquirer");
 const { questions } = require("./questions");
 
 function promptUser() {
+    inquire.prompt(questions).then(answers => {
+        console.log(answers)
 
+    })
 
 };
 
