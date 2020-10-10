@@ -2,17 +2,11 @@
 const mysql = require("mysql");
 const inquire = require("inquirer");
 
-const Department = require("./JS/lib/department");
-const EmployeeRole = require("./JS/lib/employeeRole");
-const Employee = require("./JS/lib/employee");
-
-const employeeRoleArr = [];
-const departmentArr = [];
-const employeeArr = [];
-
+const { questions } = require("./JS/questions");
+const { prompt } = require("inquirer");
 
 // require arrays 
-const { questions } = require("./questions");
+
 
 const table = "SELECT employee.id, employee.first_name, employee.last_name, employee_role.title, employee_role.salary, department.dep_name, employee.manager_id FROM Employee INNER JOIN employee_role ON employee_role.id = employee.role_id INNER JOIN department ON department.id = employee_role.department_id";
 
@@ -35,8 +29,7 @@ const connection = mysql.createConnection({
 connection.connect(function(err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
-    getDepartments();
-
+    promptUser();
 });
 
 function promptUser() {
@@ -48,14 +41,8 @@ function promptUser() {
             case "View All Employees by Department":
                 viewByDepartment(answers.dept)
                 break;
-            case "View All Employees by Manager":
-                viewAllByManager();
-                break;
             case "Add Employee":
                 addEmployee();
-                break;
-            case "Remove Employee":
-                removeEmployee();
                 break;
             case "Update Employee Role":
                 updateEmployee();
@@ -94,3 +81,5 @@ function quit() {
     console.log("You just quit!")
     connection.end();
 };
+
+module.exports = { promptUser };
