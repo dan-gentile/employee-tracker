@@ -1,14 +1,32 @@
 // require packages
 const mysql = require("mysql");
 const inquire = require("inquirer");
+const util = require("util")
+
+const EmployeeRole = require("./JS/lib/employeeRole");
+const Employee = require("./JS/lib/employee");
+const Department = require("./JS/lib/department");
 
 const { questions } = require("./JS/questions");
-const { prompt } = require("inquirer");
-
-// require arrays 
 
 
-const table = "SELECT employee.id, employee.first_name, employee.last_name, employee_role.title, employee_role.salary, department.dep_name, employee.manager_id FROM Employee INNER JOIN employee_role ON employee_role.id = employee.role_id INNER JOIN department ON department.id = employee_role.department_id";
+//arrays 
+const employeeObjArr = [];
+const roleObjArr = [];
+const departmentObjArr = [];
+
+const employeeArr = [];
+const roleArr = [];
+const departmentArr = [];
+
+let newDept;
+let newRole;
+let newEmployee;
+
+
+const allTable = "SELECT employee.id, employee.first_name, employee.last_name, employee_role.title, employee_role.salary, department.dept_name, employee.manager_id FROM Employee INNER JOIN employee_role ON employee_role.role_id = employee.role_id INNER JOIN department ON department.dept_id = employee_role.dept_id";
+const employeeRoleTable = "SELECT department.dept_id, department.dept_name, employee_role.role_id, employee_role.title, employee_role.salary FROM employee_role INNER JOIN department ON department.dept_id = employee_role.dept_id";
+const employeeTable = "SELECT department.dept_id, department.dept_name, employee_role.role_id, employee_role.title, employee_role.salary, employee.first_name, employee.last_name FROM employee_role INNER JOIN department ON department.dept_id = employee_role.dept_id INNER JOIN employee ON employee.role_id = employee_role.role_id";
 
 // connect to the database information
 const connection = mysql.createConnection({
@@ -29,29 +47,227 @@ const connection = mysql.createConnection({
 connection.connect(function(err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
-    promptUser();
+    getDepartments();
 });
 
+function getDepartments() {
+    connection.query("SELECT * FROM department", function(err, data) {
+        if (err) throw err;
+        data.forEach(element => {
+            newDept = new Department(element.dept_id, element.dept_name);
+            departmentObjArr.push(newDept);
+            departmentArr.push(newDept.deptName);
+        });
+        getRole();
+    });
+};
+
+function getRole() {
+    connection.query(`${employeeRoleTable}`, function(err, data) {
+        if (err) throw err;
+        data.forEach(element => {
+            newRole = new EmployeeRole(element.dept_id, element.dept_name, element.role_id, element.title, element.salary);
+            roleObjArr.push(newRole);
+            roleArr.push(newRole.title)
+        });
+        getEmployees();
+    });
+
+};
+
+function getEmployees() {
+    connection.query(`${employeeTable}`, function(err, data) {
+        if (err) throw err;
+        data.forEach(element => {
+            newEmployee = new Employee(element.dept_id, element.dept_name, element.role_id, element.title, element.salary, element.first_name, element.last_name)
+            employeeObjArr.push(newEmployee);
+            employeeArr.push(`${newEmployee.firstName} ${newEmployee.lastName}`);
+        });
+        promptUser();
+    });
+};
+
 function promptUser() {
-    inquire.prompt(questions).then(answers => {
-        switch (answers.choice) {
+    inquire.prompt([{
+            name: "choice",
+            message: "What would you like to do?",
+            type: "list",
+            choices: [
+                "View All Employees",
+                "View All Employees by Department",
+                "View All Employees by Manager",
+                "Add",
+                "Remove Employee",
+                "Update Employee Role",
+                "Update Employee Manager",
+                "Quit Application"
+            ]
+        },
+        {
+            name: "dept",
+            message: "Which department do you want to search by?",
+            type: "list",
+            choices: departmentArr,
+            when: function(answers) {
+                if (answers.choice === "View All Employees by Department") {
+                    return true
+                } else {
+                    return false
+                }
+            }
+        },
+
+    ], ).then(res => {
+        switch (res.choice) {
             case "View All Employees":
                 viewAllEmployees();
                 break;
             case "View All Employees by Department":
-                viewByDepartment(answers.dept)
+                viewByDepartment(res.dept)
                 break;
-            case "Add Employee":
-                addEmployee();
+            case "Add":
+                inquire.prompt([{
+                        name: "addType",
+                        message: "What do you want to add?",
+                        type: "list",
+                        choices: [
+                            "New Department",
+                            "New Employee Role",
+                            "New Employee",
+                            "Quit"
+                        ]
+                    }, {
+                        name: 'newDept',
+                        message: "What is the New Department?",
+                        type: "input",
+                        when: function(answers) {
+                            if (answers.addType === "New Department") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+                    }, {
+                        name: 'newRole',
+                        message: "What is the New Role?",
+                        type: "input",
+                        when: function(answers) {
+                            if (answers.addType === "New Employee Role") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+                    }, {
+                        name: 'newSalary',
+                        message: "What is the Salary?",
+                        type: "number",
+                        when: function(answers) {
+                            if (answers.addType === "New Employee Role") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+                    }, {
+                        name: 'dept',
+                        message: "What is employee's department?",
+                        type: "list",
+                        choices: departmentArr,
+                        when: function(answers) {
+                            if (answers.addType === "New Employee Role") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+
+                    },
+                    {
+                        name: 'firstName',
+                        message: "What is employee's first name?",
+                        type: "input",
+                        when: function(answers) {
+                            if (answers.addType === "New Employee") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+
+                    }, {
+                        name: 'lastName',
+                        message: "What is employee's last name?",
+                        type: "input",
+                        when: function(answers) {
+                            if (answers.addType === "New Employee") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+
+                    }, {
+                        name: 'role',
+                        message: "What is employee's Role?",
+                        type: "list",
+                        choices: roleArr,
+                        when: function(answers) {
+                            if (answers.addType === "New Employee") {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+
+                    }
+
+                ]).then(res => {
+                    switch (res.addType) {
+                        case "New Department":
+                            addDepartment(res.newDept)
+                            break;
+                        case "New Employee Role":
+                            let findDeptId = departmentObjArr.find(element => element.deptName === `${res.dept}`);
+                            let { deptId } = findDeptId;
+                            addRole(res.newRole, res.newSalary, deptId)
+                            break;
+                        case "New Employee":
+                            let findId = roleObjArr.find(element => element.title === `${res.role}`);
+                            let { roleId } = findId;
+
+                            addEmployee(res.firstName, res.lastName, roleId);
+                            break;
+                        case "Quit":
+                            promptUser();
+                            break;
+
+                    };
+                });
                 break;
             case "Update Employee Role":
-                updateEmployee();
+                inquire.prompt([{
+                        name: "who",
+                        message: "Who do you want to update?",
+                        type: "list",
+                        choices: [employeeArr]
+                    }, {
+                        name: "role",
+                        message: "What is their new role?",
+                        type: "list",
+                        choices: [roleArr]
+                    }
+
+                ]).then(res => {
+                    updateEmployee(res.who, res.role);
+                })
                 break;
             case "Update Employee Manager":
                 updateEmployeeManager();
                 break;
             case "Quit Application":
-                quit();
+                console.log("You just quit!")
+                connection.end();
                 break;
         };
 
@@ -61,7 +277,7 @@ function promptUser() {
 
 
 function viewAllEmployees() {
-    connection.query(`${table}`, function(err, data) {
+    connection.query(`${allTable}`, function(err, data) {
         if (err) throw err;
         console.table(data);
         promptUser();
@@ -69,17 +285,41 @@ function viewAllEmployees() {
 };
 
 function viewByDepartment(res) {
-    connection.query(`${table} WHERE dep_name IN (?)`, res, function(err, data) {
+    connection.query(`${allTable} WHERE dept_name IN (?)`, res, function(err, data) {
         if (err) throw err;
         console.table(data);
         promptUser();
     });
 };
 
-// quit the application
-function quit() {
-    console.log("You just quit!")
-    connection.end();
+function addDepartment(res) {
+    connection.query('INSERT INTO department(dept_name) VALUES(?)', res, function(err, data) {
+        if (err) throw err;
+        console.log(`${res} has been added`);
+        departmentArr.push(res);
+        getDepartments();
+
+    });
+
 };
 
-module.exports = { promptUser };
+function addRole(role, salary, deptId) {
+    connection.query('INSERT INTO employee_role(title, salary, dept_id) VALUES(?, ?, ?)', [role, salary, deptId], function(err, data) {
+        if (err) throw err;
+        console.log(`${role} has been added paying ${salary} to ${deptId}`);
+        roleArr.push(role);
+        getRole();
+
+    });
+};
+
+function addEmployee(firstName, lastName, roleId) {
+    connection.query('INSERT INTO employee(first_name, last_name, role_id) VALUES(?,?,?)', [firstName, lastName, roleId], function(err, data) {
+        if (err) throw err;
+        console.log(`${firstName} ${lastName} has been added`);
+        employeeArr.push(`${firstName} ${lastName}`);
+        getEmployees();
+    });
+};
+
+function updateEmployee()
