@@ -1,14 +1,11 @@
 // require packages
 const mysql = require("mysql");
 const inquire = require("inquirer");
-const util = require("util")
 
 // required classes
 const EmployeeRole = require("./JS/lib/employeeRole");
 const Employee = require("./JS/lib/employee");
 const Department = require("./JS/lib/department");
-
-
 
 //arrays 
 const employeeObjArr = [];
