@@ -374,16 +374,13 @@ function addEmployee(firstName, lastName, roleId) {
 };
 
 // updates an employee in the DB 
-function updateEmployee(res1, res2, ) {
+function updateEmployee(res1, res2) {
     connection.query('UPDATE employee SET role_id = ? WHERE id = ?', [res1, res2], function(err, data) {
         if (err) throw err;
         console.log("Success!");
-
         promptUser();
     });
-
-
-}
+};
 
 // removes an employee from the DB
 function removeEmployee(res, res2) {

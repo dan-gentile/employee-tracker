@@ -6,10 +6,7 @@
 
 ## Description 
 
-![readme-gen](https://user-images.githubusercontent.com/68626350/94948032-80a60680-0493-11eb-8ca9-021f2f786092.gif)
-
-
-This application is designed to generate a readme file based on user inputs. It is intended to help developers create a base layout explaining their project in seconds. You will be lead through a series of prompts to populate the page and then a file with all of your data will be created. 
+Employee Tracker is a Content Management System that allows Employers to manager their employees. This app will allow the user to create departments, Job Roles including salary and Employees. It will also allow to update an employee's role and remove an employee. The user will be able to view all employees or employees based on departments. All information is stored in a SQL database. This app uses inquire prompts to lead the user through the process. This app is built using Node.js, Express.js, Inquire NPM and MYSQL.
 
 ## Table of Contents
 
@@ -29,6 +26,7 @@ This application is designed to generate a readme file based on user inputs. It 
 - [Node.js](https://nodejs.org/en/)
 - [Inquirer npm](https://www.npmjs.com/package/inquirer)
 - [Express.js](https://expressjs.com/)
+- [MySql](https://www.mysql.com/)
 
 ## Installation 
 
@@ -54,13 +52,16 @@ Input `npm start` to begin.
 Follow prompts to generate your form. 
 
 ## Code Snippets
-
-Function running the whole app
+Update Employee Function
 ~~~
-
-
+function updateEmployee(res1, res2) {
+    connection.query('UPDATE employee SET role_id = ? WHERE id = ?', [res1, res2], function(err, data) {
+        if (err) throw err;
+        console.log("Success!");
+        promptUser();
+    });
+};
 ~~~
-
 
 ## License 
 
