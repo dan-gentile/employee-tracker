@@ -5,6 +5,8 @@
 ![License](https://img.shields.io/github/license/dan-gentile/employee-tracker)
 
 ## Description 
+Video Walk through: 
+<https://youtu.be/o3m_19eaQSw> 
 
 Employee Tracker is a Content Management System that allows Employers to manager their employees. This app will allow the user to create departments, Job Roles including salary and Employees. It will also allow to update an employee's role and remove an employee. The user will be able to view all employees or employees based on departments. All information is stored in a SQL database. This app uses inquire prompts to lead the user through the process. This app is built using Node.js, Express.js, Inquire NPM and MYSQL.
 
